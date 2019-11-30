@@ -22,7 +22,7 @@
 </div>
  
 <div class="row">
-	<div class="col-md-4">
+	<div class="col-md-4 text-center">
 		<div><canvas id="canvas"></canvas></div>		
     </div>
 	<div class="col-md-8">
@@ -31,41 +31,13 @@
     </div>
 </div>
 
-<!--
-<div class="row">
-    <div class="col-md-10">
-		<div id="label-container-normal"></div>  
-    </div>
-    <div class="col-md-2">
-      &nbsp;
-    </div>
- </div>
 
-<div class="row">
-    <div class="col-md-10">
-    <div id="label-container-infarto"></div>  
-    </div>
-    <div class="col-md-2">
-            &nbsp;
-    </div>
- </div>
-
-
-<br />
-
-<div class="row">
-    <div class="col-md-10 text-center">
-<div><canvas id="canvas"></canvas></div>
-    </div>
- </div>
--->
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/pose@0.8/dist/teachablemachine-pose.min.js"></script>
 <script type="text/javascript">
-    // More API functions here:
-    // https://github.com/googlecreativelab/teachablemachine-community/tree/master/libraries/pose
 
-    // the link to your model provided by Teachable Machine export panel
+
+    // enlace al modelo entrebado
     const URL = "./";
     let model, webcam, ctx, labelContainer, maxPredictions;
 
@@ -74,55 +46,51 @@
         const metadataURL = URL + "metadata.json";
 		$("#imgCorazon").hide();
 		$("#btnStart").hide();
-        // load the model and metadata
+        // Cargamos modelo y metadatos
         // Refer to tmImage.loadFromFiles() in the API to support files from a file picker
         // Note: the pose library adds a tmPose object to your window (window.tmPose)
         model = await tmPose.load(modelURL, metadataURL);
         maxPredictions = model.getTotalClasses();
 
-        // Convenience function to setup a webcam
+        // Funciones de acceso a la ebcam
         const size = 400;
-        const flip = true; // whether to flip the webcam
-        webcam = new tmPose.Webcam(size, size, flip); // width, height, flip
-        await webcam.setup(); // request access to the webcam
+        const flip = true; // giramos la imagen?
+        webcam = new tmPose.Webcam(size, size, flip); // ancho, alto, giro
+        await webcam.setup(); // Pedimos acceso a la webcam
         await webcam.play();
         window.requestAnimationFrame(loop);
 
-        // append/get elements to the DOM
+        // añadimos/obtenemos elelemntos del DOM
         const canvas = document.getElementById("canvas");
         canvas.width = size; canvas.height = size;
         ctx = canvas.getContext("2d");
         labelContainer1 = document.getElementById("label-container-normal");
 		labelContainer2 = document.getElementById("label-container-infarto");
-		/*
-        for (let i = 0; i < maxPredictions; i++) { // and class labels
-            labelContainer.appendChild(document.createElement("div"));
-        }
-		*/
+*/
     }
 
     async function loop(timestamp) {
-        webcam.update(); // update the webcam frame
+        webcam.update(); // actualizamos el fotograma
         await predict();
         window.requestAnimationFrame(loop);
     }
 
     async function predict() {
-        // Prediction #1: run input through posenet
+        // Prediccion #1
         // estimatePose can take in an image, video or canvas html element
         const { pose, posenetOutput } = await model.estimatePose(webcam.canvas);
-        // Prediction 2: run input through teachable machine classification model
+        // Prediccion 2: 
         const prediction = await model.predict(posenetOutput);
 
         const classPredictionNormal = prediction[0].probability.toFixed(2)*100;
 		const classPredictionInfarto = prediction[1].probability.toFixed(2)*100;
 
 		
-		labelContainer1.innerHTML = '<b>NORMAL:</b>	<br /><div class="progress" style="height:40px;"><div class="progress-bar  progress-bar-striped bg-info" role="progressbar" style="height:40px; width:'+classPredictionNormal+'%" aria-valuenow="'+classPredictionNormal+'" aria-valuemin="0" aria-valuemax="100"></div></div>';
-		//console.log(prediction[0].className)
+		labelContainer1.innerHTML = '<b>NORMAL:</b>	<br/><div class="progress" style="height:40px;"><div class="progress-bar  progress-bar-striped bg-info" role="progressbar" style="height:40px; width:'+classPredictionNormal+'%" aria-valuenow="'+classPredictionNormal+'" aria-valuemin="0" aria-valuemax="100"></div></div>';
+
 		
 		
-		labelContainer2.innerHTML = '<b><INFARTO:</b>	<br /><div class="progress" style="height:40px;"><div class="progress-bar progress-bar-striped bg-danger" role="progressbar" style="height:40px; width: '+classPredictionInfarto+'%" aria-valuenow="'+classPredictionInfarto+'" aria-valuemin="0" aria-valuemax="100"></div></div>';
+		labelContainer2.innerHTML = '<b><INFARTO:</b><br/><div class="progress" style="height:40px;"><div class="progress-bar progress-bar-striped bg-danger" role="progressbar" style="height:40px; width: '+classPredictionInfarto+'%" aria-valuenow="'+classPredictionInfarto+'" aria-valuemin="0" aria-valuemax="100"></div></div>';
 		
 		if (classPredictionInfarto > 80){
 			$("#imgCorazon").show();
@@ -130,7 +98,7 @@
 		else{$("#imgCorazon").hide();}
 
 
-        // finally draw the poses
+        // dibujamos las posturas
         drawPose(pose);
     }
 
